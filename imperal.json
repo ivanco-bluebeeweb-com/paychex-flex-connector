@@ -1,0 +1,512 @@
+{
+  "manifest_schema_version": 3,
+  "sdk_version": "5.13.0",
+  "app_id": "paychex-flex-connector",
+  "version": "0.1.0",
+  "name": "Paychex Flex",
+  "description": "Connect your own Paychex Flex company (OAuth2 Client Credentials -- bring your own Developer Partner application Client ID/Secret from developer.paychex.com) to read companies, workers, payrolls, time-off requests, and benefits, plus value-add workforce reports.",
+  "icon": "icon.svg",
+  "actions_explicit": true,
+  "system": false,
+  "capabilities": [
+    "paychex:read"
+  ],
+  "tools": [
+    {
+      "name": "connect_paychex",
+      "description": "Connect your Paychex Flex company: register your Paychex Developer Partner application's Client ID and Client Secret from developer.paychex.com. No browser login needed -- the connection is validated and finished immediately in this one call.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "paychex.connection.created"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "client_id": {
+            "default": "",
+            "description": "Your Paychex Developer Partner application's Client ID.",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "client_secret": {
+            "default": "",
+            "description": "Your Paychex Developer Partner application's Client Secret.",
+            "title": "Client Secret",
+            "type": "string"
+          },
+          "label": {
+            "default": "",
+            "description": "Optional friendly label for this connection, e.g. 'Acme Inc Paychex'.",
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "title": "ConnectPaychexParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "default": "",
+            "title": "Label",
+            "type": "string"
+          },
+          "company_name": {
+            "default": "",
+            "title": "Company Name",
+            "type": "string"
+          }
+        },
+        "title": "ProviderConnection",
+        "type": "object"
+      },
+      "event": "paychex-flex-connector.connect",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "paychex_flex"
+    },
+    {
+      "name": "list_connections",
+      "description": "List the connected Paychex Flex companies and whether each saved connection still works.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "description": "Explicit empty params model -- V17 disallows untyped handlers.",
+        "properties": {},
+        "title": "NoParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "$defs": {
+          "ProviderConnection": {
+            "properties": {
+              "id": {
+                "default": "",
+                "title": "Id",
+                "type": "string"
+              },
+              "label": {
+                "default": "",
+                "title": "Label",
+                "type": "string"
+              },
+              "company_name": {
+                "default": "",
+                "title": "Company Name",
+                "type": "string"
+              }
+            },
+            "title": "ProviderConnection",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "connections": {
+            "items": {
+              "$ref": "#/$defs/ProviderConnection"
+            },
+            "title": "Connections",
+            "type": "array"
+          }
+        },
+        "title": "ProviderConnectionList",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "paychex_flex"
+    },
+    {
+      "name": "disconnect_paychex",
+      "description": "Disconnect a Paychex Flex company: deletes the saved connection. Nothing in Paychex itself is changed.",
+      "action_type": "destructive",
+      "chain_callable": true,
+      "effects": [
+        "paychex.connection.deleted"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "description": "Which connection to disconnect (see list_connections).",
+            "title": "Connection Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connection_id"
+        ],
+        "title": "DisconnectPaychexParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "deleted": {
+            "default": false,
+            "title": "Deleted",
+            "type": "boolean"
+          },
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "title": "DeleteResult",
+        "type": "object"
+      },
+      "event": "paychex-flex-connector.disconnect",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "paychex_flex"
+    },
+    {
+      "name": "list_entities",
+      "description": "List Paychex Flex records of any resource type (companies, workers, payrolls, time-off-requests, benefits). Some resources are company-scoped -- pass the company id via scope_id.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Paychex Flex company to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "entity": {
+            "description": "Resource type: companies, workers, payrolls, time-off-requests, benefits.",
+            "title": "Entity",
+            "type": "string"
+          },
+          "scope_id": {
+            "default": "",
+            "description": "Company id, required for company-scoped resources (workers, payrolls, time-off-requests, benefits).",
+            "title": "Scope Id",
+            "type": "string"
+          },
+          "filter_expr": {
+            "default": "",
+            "description": "Optional filter expression supported by the resource (e.g. companyId).",
+            "title": "Filter Expr",
+            "type": "string"
+          },
+          "limit": {
+            "default": 50,
+            "description": "Maximum records to return.",
+            "maximum": 200,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "entity"
+        ],
+        "title": "ListEntitiesParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "entity": {
+            "default": "",
+            "title": "Entity",
+            "type": "string"
+          },
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "records": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Records",
+            "type": "array"
+          }
+        },
+        "title": "EntityList",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "paychex_flex"
+    },
+    {
+      "name": "get_entity",
+      "description": "Read one Paychex Flex record of any resource type in full by its id.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Paychex Flex company to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          },
+          "entity": {
+            "description": "Resource type, same values as list_entities.",
+            "title": "Entity",
+            "type": "string"
+          },
+          "scope_id": {
+            "default": "",
+            "description": "Company id, required for company-scoped resources.",
+            "title": "Scope Id",
+            "type": "string"
+          },
+          "record_id": {
+            "description": "The record's Paychex id.",
+            "title": "Record Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entity",
+          "record_id"
+        ],
+        "title": "GetEntityParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "entity": {
+            "default": "",
+            "title": "Entity",
+            "type": "string"
+          },
+          "record": {
+            "additionalProperties": true,
+            "title": "Record",
+            "type": "object"
+          }
+        },
+        "title": "EntityDetail",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "paychex_flex"
+    },
+    {
+      "name": "get_company_info",
+      "description": "Read the connected Paychex Flex company's own profile: company name and total worker count.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Paychex Flex company to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          }
+        },
+        "title": "GetCompanyInfoParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "company_name": {
+            "default": "",
+            "title": "Company Name",
+            "type": "string"
+          },
+          "worker_count": {
+            "default": 0,
+            "title": "Worker Count",
+            "type": "integer"
+          }
+        },
+        "title": "CompanyInfo",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "paychex_flex"
+    },
+    {
+      "name": "get_headcount_report",
+      "description": "Value-add report: one-glance headcount for the connected Paychex Flex company -- total worker count broken down by employment status.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Paychex Flex company to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          }
+        },
+        "title": "GetCompanyInfoParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "total_workers": {
+            "default": 0,
+            "title": "Total Workers",
+            "type": "integer"
+          },
+          "by_status": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "By Status",
+            "type": "object"
+          }
+        },
+        "title": "HeadcountReport",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "paychex_flex"
+    },
+    {
+      "name": "get_upcoming_payroll_report",
+      "description": "Value-add report: read the next unprocessed (upcoming) payroll's pay date and period for the connected Paychex Flex company.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "connection_id": {
+            "default": "",
+            "description": "Which connected Paychex Flex company to use (see list_connections). Omit if only one is connected.",
+            "title": "Connection Id",
+            "type": "string"
+          }
+        },
+        "title": "GetCompanyInfoParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "found": {
+            "default": false,
+            "title": "Found",
+            "type": "boolean"
+          },
+          "pay_date": {
+            "default": "",
+            "title": "Pay Date",
+            "type": "string"
+          },
+          "period_start": {
+            "default": "",
+            "title": "Period Start",
+            "type": "string"
+          },
+          "period_end": {
+            "default": "",
+            "title": "Period End",
+            "type": "string"
+          },
+          "status": {
+            "default": "",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "UpcomingPayrollReport",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "paychex_flex"
+    }
+  ],
+  "signals": [],
+  "schedules": [],
+  "required_scopes": [],
+  "icon_size_bytes": 677,
+  "lifecycle": {
+    "health_check": {
+      "interval_sec": 60
+    }
+  },
+  "secrets": [
+    {
+      "name": "paychex_connections",
+      "description": "JSON array of saved Paychex Flex connections (client_id/secret, tokens).",
+      "required": false,
+      "write_mode": "extension",
+      "max_bytes": 65536,
+      "scope": "user",
+      "rotation_hint_days": 365
+    }
+  ],
+  "panels": [
+    {
+      "panel_id": "secrets",
+      "slot": "right",
+      "title": "Secrets",
+      "tree": {},
+      "icon": "KeyRound",
+      "refresh": "manual",
+      "center_overlay": false
+    },
+    {
+      "panel_id": "paychex_connect",
+      "slot": "left",
+      "title": "Paychex Flex",
+      "tree": {},
+      "icon": "",
+      "refresh": "manual",
+      "center_overlay": false
+    },
+    {
+      "panel_id": "paychex_connect_help",
+      "slot": "overlay",
+      "title": "How do I set this up?",
+      "tree": {},
+      "icon": "",
+      "refresh": "manual",
+      "center_overlay": false
+    },
+    {
+      "panel_id": "paychex_settings",
+      "slot": "center",
+      "title": "",
+      "tree": {},
+      "icon": "",
+      "refresh": "manual",
+      "center_overlay": false
+    }
+  ]
+}
