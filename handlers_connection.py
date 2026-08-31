@@ -122,7 +122,7 @@ async def connect_paychex(ctx, params: ConnectPaychexParams) -> ActionResult:
     connections = await _load_connections(ctx)
     connections.append(conn)
     await _save_connections(ctx, connections)
-    return ActionResult.ok(ProviderConnection(id=conn_id, label=conn["label"], company_name=""))
+    return ActionResult.success(ProviderConnection(id=conn_id, label=conn["label"], company_name=""), summary="Paychex connected.")
 
 
 @chat.function(
@@ -134,7 +134,7 @@ async def list_connections(ctx, params: NoParams) -> ActionResult:
     """List the connected Paychex Flex companies."""
     connections = await _load_connections(ctx)
     items = [ProviderConnection(id=c.get("id", ""), label=c.get("label", ""), company_name=c.get("company_name", "")) for c in connections]
-    return ActionResult.ok(ProviderConnectionList(connections=items))
+    return ActionResult.success(ProviderConnectionList(connections=items), summary="Connections listed.")
 
 
 @chat.function(
@@ -151,4 +151,4 @@ async def disconnect_paychex(ctx, params: DisconnectPaychexParams) -> ActionResu
     if len(remaining) == len(connections):
         return ActionResult.error("Connection not found.", code="PAYCHEX_NOT_CONNECTED")
     await _save_connections(ctx, remaining)
-    return ActionResult.ok(DeleteResult(deleted=True, id=params.connection_id))
+    return ActionResult.success(DeleteResult(deleted=True, id=params.connection_id), summary="Paychex disconnected.")

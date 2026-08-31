@@ -47,7 +47,7 @@ async def list_entities(ctx, params: ListEntitiesParams) -> ActionResult:
                 break
     elif isinstance(data, list):
         rows = data
-    return ActionResult.ok(EntityList(entity=params.entity, count=len(rows), records=rows))
+    return ActionResult.success(EntityList(entity=params.entity, count=len(rows), records=rows), summary="Entities listed.")
 
 
 @chat.function(
@@ -67,4 +67,4 @@ async def get_entity(ctx, params: GetEntityParams) -> ActionResult:
             code="PAYCHEX_VALIDATION_FAILED",
         )
     data = await pc.request(ctx, conn, "GET", f"{path}/{params.record_id}", action="get " + params.entity)
-    return ActionResult.ok(EntityDetail(entity=params.entity, record=data if isinstance(data, dict) else {}))
+    return ActionResult.success(EntityDetail(entity=params.entity, record=data if isinstance(data, dict) else {}), summary="Entity retrieved.")

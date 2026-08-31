@@ -29,7 +29,7 @@ async def get_company_info(ctx, params: GetCompanyInfoParams) -> ActionResult:
     data = await pc.request(ctx, conn, "GET", "/companies", action="get company info")
     companies = data.get("content", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
     name = companies[0].get("companyName", "") if companies else ""
-    return ActionResult.ok(CompanyInfo(company_name=name, worker_count=len(companies)))
+    return ActionResult.success(CompanyInfo(company_name=name, worker_count=len(companies)), summary="Company info retrieved.")
 
 
 @chat.function(
@@ -57,7 +57,7 @@ async def get_headcount_report(ctx, params: GetCompanyInfoParams) -> ActionResul
             status = (w.get("status") or w.get("employmentStatus") or "unknown")
             by_status[status] = by_status.get(status, 0) + 1
             total += 1
-    return ActionResult.ok(HeadcountReport(total_workers=total, by_status=by_status))
+    return ActionResult.success(HeadcountReport(total_workers=total, by_status=by_status), summary="Headcount report retrieved.")
 
 
 @chat.function(
@@ -81,9 +81,9 @@ async def get_upcoming_payroll_report(ctx, params: GetCompanyInfoParams) -> Acti
         payrolls = pdata.get("content", []) if isinstance(pdata, dict) else (pdata if isinstance(pdata, list) else [])
         for p in payrolls:
             if (p.get("status") or "").lower() in ("scheduled", "pending", "upcoming", "draft"):
-                return ActionResult.ok(UpcomingPayrollReport(
+                return ActionResult.success(UpcomingPayrollReport(
                     found=True,
                     pay_date=p.get("payDate", ""),
                     period_start=p.get("periodStart", "") or p.get("startDate", ""),
-                ))
-    return ActionResult.ok(UpcomingPayrollReport(found=False))
+                ), summary="Upcoming payroll report retrieved.")
+    return ActionResult.success(UpcomingPayrollReport(found=False), summary="Upcoming payroll report retrieved.")
