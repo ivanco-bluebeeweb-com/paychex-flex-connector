@@ -22,8 +22,7 @@ import handlers_connection as h
 
 def _settings_button() -> ui.UINode:
     return ui.Button(
-        "App settings", variant="secondary", size="sm", full_width=True,
-        icon="settings", on_click=ui.Call("__panel__paychex_settings"),
+        "App settings", variant="secondary", size="sm", icon="settings", on_click=ui.Call("__panel__paychex_settings"),
     )
 
 
@@ -51,6 +50,9 @@ def _connect_section() -> ui.UINode:
         ui.Button("How do I set this up?", variant="ghost", size="sm",
                   icon="HelpCircle",
                   on_click=ui.Call("__panel__paychex_connect_help")),
+        ui.Button("Sign in with Paychex (OAuth 2.0 / SSO)", variant="primary", size="sm", icon="login"),
+        ui.Divider(),
+        ui.Text("Or connect via Developer Partner Credentials", variant="caption"),
         ui.Form(
             action="connect_paychex",
             submit_label="Connect Paychex Flex",
